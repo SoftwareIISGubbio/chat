@@ -1,0 +1,26 @@
+# file generici
+.DS_Store
+# pacchetti software da scaricare
+apache-tomcat-10.0/
+Eclipse.app/
+eclipse/
+jdk-17/
+
+# lo spazio di lavoro di eclipse
+workspace-eclipse 
+
+# i moduli del server node (li scarica npm)
+serverNode/node_modules
+
+# la cartella degli artefatti e del client java
+clientJava/target
+clientJava/.classpath
+clientJava/.project
+clientJava/.settings
+
+
+# la cartella degli artefatti e del server java
+serverJava/target
+serverJava/.classpath
+serverJava/.project
+serverJava/.settings

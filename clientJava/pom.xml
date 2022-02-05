@@ -1,0 +1,56 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>it.aspix</groupId>
+    <artifactId>clientchat</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+    <!-- In caso si voglia è possibile chiedere maven quali librerie sta
+    usando un determinato progetto, il comando è: "mvn dependency:tree" -->
+    
+    <dependencies>
+        <!-- Uso il JDK di Liberica con FX incluso  
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>17</version>
+        </dependency> -->
+        <!-- classi per la gestione dei JSON-B.
+	         Non è necessario però metterla siccome la prende come dipendenza 
+	         di yasson.
+	    <dependency>     
+            <groupId>jakarta.json.bind</groupId>
+            <artifactId>jakarta.json.bind-api</artifactId>
+            <version>2.0.0</version>
+		</dependency> 
+		-->
+        <dependency>
+            <!-- la libreria che svolge il lavoro per JSON-B.
+		     JSON-B è soltanto una specie di interfaccia, poi serve una
+		     lireria che faccia il lavoro davvero
+		     2022-01-24 pare solo Yasson possa farlo, Apache Johnzon fa ancora 
+		     riferimento al pacchetto javax.json -->
+            <groupId>org.eclipse</groupId>
+            <artifactId>yasson</artifactId>
+            <version>2.0.4</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- per controllare le versioni di java in compilazione -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <release>17</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,15 @@
+{
+    "tipo": "????",
+    "nome": "????",
+    "password": "????",
+    "risultato": "????",
+    "testo": "????",
+    "persone": [ "???", "???"]
+}
+
+ il tipo dei messaggi può essere: 
+    - "login" allora ci saranno nime e password, 
+    - "rispostaLogin" allora ci sarà un risultato "ok" o "errore"
+    - "messaggio" allora ci sarà un testo
+    - "utenti" allora ci sarà un elenco di persone
+    - "errore" allora ci sarà un testo 

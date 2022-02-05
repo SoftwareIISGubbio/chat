@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Chat websocket</title>
+        <style type="text/css">
+            span {
+                border: 1px solid #ccc;
+                border-radius:0.25em; 
+                padding:0.25em;
+                display: inline-block;
+                background-color: #eee
+            }
+        </style>
+        <script type="text/javascript">
+	       var ws;
+	       function connetti(oggetto){
+	    	   let stringaConnessione = oggetto.innerText;
+	    	   console.log(stringaConnessione);
+	    	   ws = new WebSocket(stringaConnessione);
+	    	   ws.onopen = function(){
+	                console.log("websocket aperto!");
+	           };
+	           ws.onmessage = function(message){
+	                document.getElementById("ricezione").textContent += message.data + "\n";
+	           };
+	       }
+	       
+	       function inviaAlServer(){
+	    	    ws.send(document.getElementById("msg").value);
+	    	    document.getElementById("msg").value = "";
+	       }
+	       
+	       function chiudiLaConnessione(){
+	    	    ws.close();
+	       }
+	   </script>
+    </head>
+    <body>
+        <div>Connetti con:
+            <span onclick="connetti(this)">ws://localhost:8080/serverchat/echo</span>
+            <span onclick="connetti(this)">ws://localhost:7000/ws/chat</span>
+        </div>
+        <textarea id="ricezione" readonly></textarea><br/>
+        <input id="msg" type="text" />
+        <button onClick="inviaAlServer()">invia!</button>
+        <button onClick="chiudiLaConnessione()">chiudi</button>
+    </body>
+</html>
