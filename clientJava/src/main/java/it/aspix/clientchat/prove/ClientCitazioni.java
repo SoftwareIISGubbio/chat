@@ -60,7 +60,11 @@ public class ClientCitazioni extends Application{
 		        Messaggio m = gestorePerJson.fromJson(data.toString(), Messaggio.class);
 		        
 		        Platform.runLater( ()->{
-		        	lvMessaggi.getItems().add(m.getNome()+": "+m.getTesto());
+		            if("messaggio".equals(m.getTipo())) {
+		                lvMessaggi.getItems().add(m.getNome()+": "+m.getTesto());
+		            } else {
+		                lvMessaggi.getItems().add("["+m.getTipo()+"]");
+		            }
 			    });
 		        
 		        return null;
@@ -77,9 +81,9 @@ public class ClientCitazioni extends Application{
 		webSocket.sendText(gestorePerJson.toJson(m), true);
 		
 	    Timeline timeline = new Timeline(new KeyFrame(
-	    	      Duration.seconds(2), // ogni quanto va chiamata la funzione
+	    	      Duration.seconds(4), // ogni quanto va chiamata la funzione
 	    	      x -> mandaMessaggio()));
-	    timeline.setCycleCount(100);
+	    timeline.setCycleCount(Timeline.INDEFINITE);
 	    timeline.play();
 	}
 

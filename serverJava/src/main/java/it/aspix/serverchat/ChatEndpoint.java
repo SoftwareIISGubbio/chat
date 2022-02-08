@@ -1,6 +1,7 @@
 package it.aspix.serverchat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -24,19 +25,28 @@ public class ChatEndpoint {
     private Session session; // per mandare messaggi agli altri: di sicuro si trovano soluzioni più pulite
     private boolean loginEffettuato = false;
     private String name;
-    Jsonb gestorePerJson;
+    private String userName;
+    private static JsonbConfig configurazione = new JsonbConfig().withFormatting(true);
+    private static Jsonb gestorePerJson = JsonbBuilder.create(configurazione);
     
     private static int contatore = 0;
-    private static Set<ChatEndpoint> chatEndpoints = new CopyOnWriteArraySet<>();
+    private static Set<ChatEndpoint> chatEndPoints = new CopyOnWriteArraySet<>();
+    
+    private static Messaggio userNames(){
+        ArrayList<String> u = new ArrayList<String>();
+        for(ChatEndpoint cep: chatEndPoints) {
+            u.add(cep.userName);
+        }
+        System.out.println("======================="+u.size());
+        return new Messaggio(u);
+    }
 
     @OnOpen
     public void onOpen( Session session) throws IOException, EncodeException {
         this.session = session;
         this.name = ""+(contatore++);
-        chatEndpoints.add(this);
+        chatEndPoints.add(this);
         stampaMessaggio("si è connesso un nuovo client");
-		JsonbConfig configurazione = new JsonbConfig().withFormatting(true);
-		gestorePerJson = JsonbBuilder.create(configurazione);
     }
 
     @OnMessage
@@ -47,7 +57,7 @@ public class ChatEndpoint {
 
         if(loginEffettuato) {
         	// TODO: un tantino troppo semplice?
-        	broadcast(message);
+        	broadcast(messaggio);
         } else {
         	stampaMessaggio("attendo un messaggio di login");
         	if( "login".equals(messaggio.tipo)) {
@@ -55,7 +65,9 @@ public class ChatEndpoint {
         			stampaMessaggio("login OK!");
         			session.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","ok")) );
         			loginEffettuato = true;
-        			// TODO: invia lista aggiornata ai client
+        			userName = messaggio.nome;
+        			// invia lista aggiornata ai client
+        			broadcast( userNames() );
             	} else {
             		stampaMessaggio("login errato, chiudo");
             		session.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","errore")) );
@@ -75,20 +87,24 @@ public class ChatEndpoint {
     @OnClose
     public void onClose(Session session) throws IOException, EncodeException {
     	stampaMessaggio("si è disconnesso");
-        chatEndpoints.remove(this);
+        chatEndPoints.remove(this);
         // TODO: invia messaggio al client?
-        // TODO: invia lista aggiornata ai client
+        // invia lista aggiornata ai client
+        broadcast( userNames() );
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
-        // gestione degli errori
+        stampaMessaggio(throwable.getLocalizedMessage());
     }
 
-    private static void broadcast(String message) {
-        chatEndpoints.forEach(endpoint -> {
+    private static void broadcast(Messaggio message) {
+        
+        String messaggio = gestorePerJson.toJson(message);
+        
+        chatEndPoints.forEach(endpoint -> {
             try {
-                endpoint.session.getBasicRemote().sendText(message);
+                endpoint.session.getBasicRemote().sendText(messaggio);
             } catch (IOException e) {
                 e.printStackTrace();
             }           

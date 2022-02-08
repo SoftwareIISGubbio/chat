@@ -27,9 +27,14 @@ public class Messaggio {
 			this.testo = altro;
 		} else if(this.tipo.equals("errore")) {
 			this.testo = altro;
-		} 
-		// TODO: magari servirebbe di sollevare una eccezione
+		}
 	}
+	
+    public Messaggio(ArrayList<String> lista) {
+        super();
+        this.tipo = "persone";
+        this.persone = lista;
+    }
 
 
 	public String getTipo() {
@@ -71,4 +76,13 @@ public class Messaggio {
 	public void setTesto(String testo) {
 		this.testo = testo;
 	}
+
+    public ArrayList<String> getPersone() {
+        return persone;
+    }
+
+    public void setPersone(ArrayList<String> persone) {
+        this.persone = persone;
+    }
+	
 }
