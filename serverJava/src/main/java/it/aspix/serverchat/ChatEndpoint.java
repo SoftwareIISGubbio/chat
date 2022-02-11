@@ -86,10 +86,9 @@ public class ChatEndpoint {
 
     @OnClose
     public void onClose(Session session) throws IOException, EncodeException {
-    	stampaMessaggio("si è disconnesso");
         chatEndPoints.remove(this);
+        stampaMessaggio("si è disconnesso, ne restano "+chatEndPoints.size());
         // TODO: invia messaggio al client?
-        // invia lista aggiornata ai client
         broadcast( userNames() );
     }
 
