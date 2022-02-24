@@ -1,9 +1,6 @@
 package it.aspix.serverchat;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
@@ -22,98 +19,66 @@ import jakarta.websocket.server.ServerEndpoint;
 @ServerEndpoint("/chat")
 public class ChatEndpoint {
  
-    private Session session; // per mandare messaggi agli altri: di sicuro si trovano soluzioni più pulite
     private boolean loginEffettuato = false;
-    private String name;
-    private String userName;
-    private static JsonbConfig configurazione = new JsonbConfig().withFormatting(true);
+    private static JsonbConfig configurazione = new JsonbConfig().withFormatting(false);
     private static Jsonb gestorePerJson = JsonbBuilder.create(configurazione);
-    
-    private static int contatore = 0;
-    private static Set<ChatEndpoint> chatEndPoints = new CopyOnWriteArraySet<>();
-    
-    private static Messaggio userNames(){
-        ArrayList<String> u = new ArrayList<String>();
-        for(ChatEndpoint cep: chatEndPoints) {
-            u.add(cep.userName);
-        }
-        System.out.println("======================="+u.size());
-        return new Messaggio(u);
-    }
 
     @OnOpen
-    public void onOpen( Session session) throws IOException, EncodeException {
-        this.session = session;
-        this.name = ""+(contatore++);
-        chatEndPoints.add(this);
-        stampaMessaggio("si è connesso un nuovo client");
+    public void onOpen( Session s ) throws IOException, EncodeException {
+        Master.addClient(s);
+        Master.stampaMessaggio(s, "si è connesso un nuovo client");
     }
 
     @OnMessage
-    public void onMessage(String message, Session session) throws IOException, EncodeException {
-    	stampaMessaggio("messaggio: "+message);
+    public void onMessage(String message, Session s) throws IOException, EncodeException {
+        Master.stampaMessaggio(s,"messaggio: "+message);
         // FIXME: devi mettere un try
     	Messaggio messaggio = gestorePerJson.fromJson(message, Messaggio.class);
 
         if(loginEffettuato) {
         	// TODO: un tantino troppo semplice?
-        	broadcast(messaggio);
+        	Master.broadcast( gestorePerJson.toJson(messaggio) );
         } else {
-        	stampaMessaggio("attendo un messaggio di login");
+            Master.stampaMessaggio(s,"attendo un messaggio di login");
         	if( "login".equals(messaggio.tipo)) {
         		if(messaggio.nome.equals(messaggio.password)) {
-        			stampaMessaggio("login OK!");
-        			session.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","ok")) );
+        		    Master.stampaMessaggio(s,"login OK!");
+        			s.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","ok")) );
         			loginEffettuato = true;
-        			userName = messaggio.nome;
+        			Master.setNameForClient(s, messaggio.nome);
         			// invia lista aggiornata ai client
-        			broadcast( userNames() );
+        			Master.broadcast( gestorePerJson.toJson(Master.getUserNames()) );
             	} else {
-            		stampaMessaggio("login errato, chiudo");
-            		session.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","errore")) );
-            		session.close();
+            	    Master.stampaMessaggio(s,"login errato, chiudo");
+            		s.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","errore")) );
+            		s.close();
+            		Master.removeClient(s); // TODO: debug su questa cosa
             	}
         	} else {
-        		stampaMessaggio("e invece no, chiudo!");
+        	    Master.stampaMessaggio(s,"e invece no, chiudo!");
         		Messaggio risposta = new Messaggio("errore","era atteso un messaggio di login");
         		
-        		session.getBasicRemote().sendText( gestorePerJson.toJson(risposta) );
+        		s.getBasicRemote().sendText( gestorePerJson.toJson(risposta) );
         		
-        		session.close();
+        		s.close();
         	}
         }
     }
 
     @OnClose
     public void onClose(Session session){
-        chatEndPoints.remove(this);
-        stampaMessaggio("si è disconnesso, ne restano "+chatEndPoints.size());
+        Master.removeClient(session);
+
         // TODO: invia messaggio al client?
-        broadcast( userNames() );
+        Master.broadcast( gestorePerJson.toJson( Master.getUserNames() ) );
     }
 
     @OnError
-    public void onError(Session session, Throwable throwable) {
-        stampaMessaggio(throwable.getLocalizedMessage());
-        stampaMessaggio("lo chiudo");
-        onClose(session);
-    }
-
-    private static synchronized void broadcast(Messaggio message) {
-        
-        String messaggio = gestorePerJson.toJson(message);
-        
-        chatEndPoints.forEach(endpoint -> {
-            try {
-                endpoint.session.getBasicRemote().sendText(messaggio);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }           
-        });
+    public void onError(Session s, Throwable throwable) {
+        Master.stampaMessaggio(s,throwable.getLocalizedMessage());
+        Master.stampaMessaggio(s,"lo chiudo");
+        onClose(s);
     }
     
-    private void stampaMessaggio(String m) {
-    	System.out.println("[%8s] %s".formatted(name, m));
-    }
 }
 
