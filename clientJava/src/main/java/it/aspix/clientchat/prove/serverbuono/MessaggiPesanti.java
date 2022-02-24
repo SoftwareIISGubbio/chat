@@ -48,9 +48,7 @@ public class MessaggiPesanti {
             Praesent at eros sit amet est auctor lobortis eu cursus ex. Fusce egestas commodo dolor ac pretium. Curabitur vulputate neque sit amet ex porta, ut posuere tellus pulvinar. Duis consequat pellentesque feugiat. Nunc nec sem dui. Sed a lectus elit. In hac habitasse platea dictumst. Quisque ac libero non enim vehicula semper a sit amet lectus. Donec fermentum blandit leo id commodo. Nam faucibus urna convallis, efficitur orci a, aliquam enim. Donec bibendum nec tortor quis laoreet. Nulla augue eros, molestie quis sem ac, ultrices facilisis lorem. Phasellus placerat, augue molestie faucibus vulputate, lectus diam vehicula nisl, non tempor mi purus a arcu. Etiam id vestibulum quam. Proin turpis enim, viverra vehicula ex eu, aliquet commodo nisi.
             Cras a nunc purus. Sed rhoncus libero laoreet justo vestibulum, eget iaculis orci porttitor. Nunc mollis, sapien a elementum eleifend, ante metus eleifend erat, quis viverra mauris nulla ac felis. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Aenean malesuada, magna eget condimentum pellentesque, mauris magna feugiat libero, et pretium erat est sit amet justo. Pellentesque eu nunc magna. Etiam mollis velit vel sapien imperdiet, quis feugiat mi sollicitudin. 
         """);
-        // invio il messaggio
-        webSocket.sendText(gestorePerJson.toJson(m), true);
-        
+		
 		// NB: se qui il programma termina non fa in tempo a ricevere nulla!
 		System.out.println("dormo 3 secondi");
 		Thread.sleep(3000);

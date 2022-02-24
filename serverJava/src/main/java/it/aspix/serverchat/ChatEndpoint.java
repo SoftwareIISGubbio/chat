@@ -85,7 +85,7 @@ public class ChatEndpoint {
     }
 
     @OnClose
-    public void onClose(Session session) throws IOException, EncodeException {
+    public void onClose(Session session){
         chatEndPoints.remove(this);
         stampaMessaggio("si è disconnesso, ne restano "+chatEndPoints.size());
         // TODO: invia messaggio al client?
@@ -95,9 +95,11 @@ public class ChatEndpoint {
     @OnError
     public void onError(Session session, Throwable throwable) {
         stampaMessaggio(throwable.getLocalizedMessage());
+        stampaMessaggio("lo chiudo");
+        onClose(session);
     }
 
-    private static void broadcast(Messaggio message) {
+    private static synchronized void broadcast(Messaggio message) {
         
         String messaggio = gestorePerJson.toJson(message);
         
