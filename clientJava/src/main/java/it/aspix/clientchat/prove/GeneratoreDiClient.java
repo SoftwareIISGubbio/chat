@@ -14,8 +14,9 @@ import jakarta.json.bind.JsonbBuilder;
 
 public class GeneratoreDiClient {
 
-	private static final int DIMENSIONE_POOL = 100;
-	private static final int NUMERO_MESSAGGI = 20;
+	private static final int DIMENSIONE_POOL = 20;
+	private static final int NUMERO_MESSAGGI = 4;
+	private static final int PAUSA_TRA_MESSAGGI = 10; // millisecondi
 	private static WebSocket clients[] = new WebSocket[DIMENSIONE_POOL];
 	private static Jsonb gestorePerJson = JsonbBuilder.create();
 
@@ -29,7 +30,7 @@ public class GeneratoreDiClient {
             public CompletionStage<Void> onText(WebSocket webSocket, CharSequence data, boolean last) {
                 webSocket.request(1); // se non lo metti non aspetta più messaggi
 
-                // accodo i caratteri ricevutio al mio buffer
+                // accodo i caratteri ricevuti al mio buffer
                 buffer.append(data);
                         
                 if( last ) {
@@ -71,7 +72,7 @@ public class GeneratoreDiClient {
             for(int i=0 ; i<DIMENSIONE_POOL ; i++ ) {
                 mTesto.setTesto("robot"+i+"-msg"+nm);
                 clients[i].sendText(gestorePerJson.toJson(mTesto), true);
-                Thread.sleep(30);
+                Thread.sleep(PAUSA_TRA_MESSAGGI);
             }
         }
         

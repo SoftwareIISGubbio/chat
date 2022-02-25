@@ -11,34 +11,41 @@ public class Master {
     
     private static ArrayList<SessioneComunicazione> chatEndPoints = new ArrayList<>();
     
-    public static synchronized void addClient(Session client) {
-        SessioneComunicazione sc = new SessioneComunicazione(client, ""+(contatore++));
-        chatEndPoints.add( sc );
+    public static void addClient(Session client) {
+        SessioneComunicazione sc;
+        synchronized(chatEndPoints) {
+            sc = new SessioneComunicazione(client, ""+(contatore++));
+            chatEndPoints.add( sc );
+        }
         stampaMessaggio(sc, "si è connesso un nuovo client");
     }
     
     public static synchronized void removeClient(Session s) {
         SessioneComunicazione trovata = null;
-        for(SessioneComunicazione sCom: chatEndPoints) {
-            if(sCom.session==s) {
-                trovata = sCom;
+        synchronized(chatEndPoints) {
+            for(SessioneComunicazione sCom: chatEndPoints) {
+                if(sCom.session==s) {
+                    trovata = sCom;
+                }
             }
-        }
-        if(trovata!=null) {
-            chatEndPoints.remove( trovata );
-            stampaMessaggio("master", "si è disconnesso, ne restano "+chatEndPoints.size());
+            if(trovata!=null) {
+                chatEndPoints.remove( trovata );
+                stampaMessaggio("master", "si è disconnesso, ne restano "+chatEndPoints.size());
+            }
         }
     }
     
-    public static synchronized void setNameForClient(Session client, String name) {
+    public static void setNameForClient(Session client, String name) {
         SessioneComunicazione trovata = null;
-        for(SessioneComunicazione sCom: chatEndPoints) {
-            if(sCom.session==client) {
-                trovata = sCom;
+        synchronized(chatEndPoints) {
+            for(SessioneComunicazione sCom: chatEndPoints) {
+                if(sCom.session==client) {
+                    trovata = sCom;
+                }
             }
-        }
-        if(trovata!=null) {
-            trovata.userName = name;
+            if(trovata!=null) {
+                trovata.userName = name;
+            }
         }
     }
     
@@ -53,7 +60,10 @@ public class Master {
     public static synchronized void broadcast(String testo) {
         chatEndPoints.forEach(endpoint -> {
             try {
-                endpoint.session.getBasicRemote().sendText(testo);
+                // il controllo serve per evitare problemi con canali in via di chiusura
+                if(endpoint.session.isOpen()) {
+                    endpoint.session.getBasicRemote().sendText(testo);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }           

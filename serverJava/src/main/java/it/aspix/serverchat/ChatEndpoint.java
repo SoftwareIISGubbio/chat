@@ -5,6 +5,7 @@ import java.io.IOException;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
+import jakarta.json.bind.JsonbException;
 import jakarta.websocket.EncodeException;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
@@ -30,46 +31,53 @@ public class ChatEndpoint {
     }
 
     @OnMessage
-    public void onMessage(String message, Session s) throws IOException, EncodeException {
+    public void onMessage(String message, Session s) {
+        
         Master.stampaMessaggio(s,"messaggio: "+message);
-        // FIXME: devi mettere un try
-    	Messaggio messaggio = gestorePerJson.fromJson(message, Messaggio.class);
 
-        if(loginEffettuato) {
-        	// TODO: un tantino troppo semplice?
-        	Master.broadcast( gestorePerJson.toJson(messaggio) );
-        } else {
-            Master.stampaMessaggio(s,"attendo un messaggio di login");
-        	if( "login".equals(messaggio.tipo)) {
-        		if(messaggio.nome.equals(messaggio.password)) {
-        		    Master.stampaMessaggio(s,"login OK!");
-        			s.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","ok")) );
-        			loginEffettuato = true;
-        			Master.setNameForClient(s, messaggio.nome);
-        			// invia lista aggiornata ai client
-        			Master.broadcast( gestorePerJson.toJson(Master.getUserNames()) );
+        try {
+        	Messaggio messaggio = gestorePerJson.fromJson(message, Messaggio.class);
+    
+            if(loginEffettuato) {
+            	// TODO: un tantino troppo semplice?
+            	Master.broadcast( gestorePerJson.toJson(messaggio) );
+            } else {
+                Master.stampaMessaggio(s,"attendo un messaggio di login");
+            	if( "login".equals(messaggio.tipo)) {
+            		if(messaggio.nome.equals(messaggio.password)) {
+            		    Master.stampaMessaggio(s,"login OK!");
+            			s.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","ok")) );
+            			loginEffettuato = true;
+            			Master.setNameForClient(s, messaggio.nome);
+            			Master.broadcast( gestorePerJson.toJson(Master.getUserNames()) );
+                	} else {
+                	    Master.stampaMessaggio(s,"login errato, chiudo");
+                		s.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","errore")) );
+                		s.close();
+                		Master.removeClient(s); 
+                	}
             	} else {
-            	    Master.stampaMessaggio(s,"login errato, chiudo");
-            		s.getBasicRemote().sendText( gestorePerJson.toJson(new Messaggio("rispostaLogin","errore")) );
+            	    Master.stampaMessaggio(s,"e invece no, chiudo!");
+            		Messaggio risposta = new Messaggio("errore","era atteso un messaggio di login");
+            		
+            		s.getBasicRemote().sendText( gestorePerJson.toJson(risposta) );
+            		
             		s.close();
-            		Master.removeClient(s); // TODO: debug su questa cosa
+            		Master.removeClient(s);
             	}
-        	} else {
-        	    Master.stampaMessaggio(s,"e invece no, chiudo!");
-        		Messaggio risposta = new Messaggio("errore","era atteso un messaggio di login");
-        		
-        		s.getBasicRemote().sendText( gestorePerJson.toJson(risposta) );
-        		
-        		s.close();
-        	}
+            }
+        }catch(JsonbException e) {
+            System.out.println("ECC: "+e.getLocalizedMessage());
+        }catch(IOException e) {
+            System.out.println("ECC: "+e.getLocalizedMessage());
         }
+        
     }
 
     @OnClose
     public void onClose(Session session){
         Master.removeClient(session);
 
-        // TODO: invia messaggio al client?
         Master.broadcast( gestorePerJson.toJson( Master.getUserNames() ) );
     }
 
