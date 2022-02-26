@@ -15,7 +15,7 @@ import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 
 /****************************************************************************
- * FIXME: questo programma è una copia di echo
+ * Riceve informazioni da un websocket
  ***************************************************************************/
 @ServerEndpoint("/chat")
 public class ChatEndpoint {
@@ -27,7 +27,6 @@ public class ChatEndpoint {
     @OnOpen
     public void onOpen( Session s ) throws IOException, EncodeException {
         Master.addClient(s);
-        Master.stampaMessaggio(s, "si è connesso un nuovo client");
     }
 
     @OnMessage
